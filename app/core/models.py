@@ -9,8 +9,8 @@ class Base(DeclarativeBase):
     pass
 
 
-class TronWallet(Base):
-    __tablename__ = 'tron_wallet'
+class WalletInfo(Base):
+    __tablename__ = 'wallet_info'
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     wallet_address: Mapped[str] = mapped_column(nullable=False)
     bandwidth: Mapped[int]
