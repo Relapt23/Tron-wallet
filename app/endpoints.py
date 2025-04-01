@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +17,7 @@ async def fetch_address_info(address_request: WalletRequest,
                              session: AsyncSession = Depends(get_session)):
     address = address_request.address
     account_info = client.get_account(address)
-    trx_balance = client.get_account_balance(address)
+    trx_balance = Decimal(client.get_account_balance(address))
     bandwidth = client.get_bandwidth(address)
     energy = account_info.get("account_resource", {}).get("energy_usage", 0)
     wallet = WalletInfo(wallet_address=address,
