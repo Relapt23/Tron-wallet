@@ -1,37 +1,30 @@
-from decimal import Decimal
-
 from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.models import WalletInfo
 from app.schemas import WalletRequest
-from app.tron_service import client
+from app.tron_service import TronService, get_tron_service
 
 router = APIRouter()
 
 
 @router.post("/address")
 async def fetch_address_info(address_request: WalletRequest,
-                             session: AsyncSession = Depends(get_session)):
+                             session: AsyncSession = Depends(get_session),
+                             tron_service: TronService = Depends(get_tron_service)):
     address = address_request.address
-    account_info = client.get_account(address)
-    trx_balance = Decimal(client.get_account_balance(address))
-    bandwidth = client.get_bandwidth(address)
-    energy = account_info.get("account_resource", {}).get("energy_usage", 0)
+    address_info = tron_service.get_address_info(address)
     wallet = WalletInfo(wallet_address=address,
-                        bandwidth=bandwidth,
-                        balance=trx_balance,
-                        energy=energy
+                        bandwidth=address_info.bandwidth,
+                        balance=address_info.balance,
+                        energy=address_info.energy
                         )
     session.add(wallet)
     await session.commit()
-    return {"address": address,
-            "energy": energy,
-            "balance": trx_balance,
-            "bandwidth": bandwidth
-            }
+    return jsonable_encoder(address_info)
 
 
 @router.get("/items")
