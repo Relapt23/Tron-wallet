@@ -1,19 +1,17 @@
 from decimal import Decimal
-
-from dotenv import load_dotenv
-
-load_dotenv(".env.test")
-
-from app.core.models import WalletInfo
-
 import pytest
 from httpx import AsyncClient, ASGITransport
+from app.core.models import WalletInfo
+
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from unittest.mock import AsyncMock
 from app.tron_service import TronService, get_tron_service, TronAddressInfo
 from app.core.db import create_async_engine, Base, get_session
 from main import app
+from dotenv import load_dotenv
+
+load_dotenv(".env.test")
 
 
 @pytest.fixture()
@@ -35,23 +33,28 @@ async def test_session():
     await engine.dispose()
     app.dependency_overrides.clear()
 
+
 @pytest.fixture()
 async def client(test_session):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
+
 @pytest.mark.asyncio
 async def test_fetch_address_info(client):
+
     response = await client.post("/address",
                                  json={"address": "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"},
                                  )
 
     assert response.status_code == 200
     data = response.json()
+
     assert data["address"] == "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"
     assert "energy" in data and isinstance(data["energy"], int)
     assert "balance" in data and isinstance(data["balance"], (int, float, Decimal))
     assert "bandwidth" in data and isinstance(data["bandwidth"], int)
+
 
 @pytest.mark.asyncio
 async def test_record_wallet_info_with_mock(client: AsyncClient, test_session):

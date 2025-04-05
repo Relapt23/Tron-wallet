@@ -15,15 +15,19 @@ router = APIRouter()
 async def fetch_address_info(address_request: WalletRequest,
                              session: AsyncSession = Depends(get_session),
                              tron_service: TronService = Depends(get_tron_service)):
+
     address = address_request.address
     address_info = tron_service.get_address_info(address)
+
     wallet = WalletInfo(wallet_address=address,
                         bandwidth=address_info.bandwidth,
                         balance=address_info.balance,
                         energy=address_info.energy
                         )
     session.add(wallet)
+
     await session.commit()
+
     return jsonable_encoder(address_info)
 
 
@@ -31,8 +35,10 @@ async def fetch_address_info(address_request: WalletRequest,
 async def get_wallet_list(session: AsyncSession = Depends(get_session),
                           cursor: int | None = Query(None, ge=1),
                           limit: int = Query(20, ge=0)):
+
     query = await session.execute(select(WalletInfo.id).where(WalletInfo.id == cursor))
     result = query.scalar_one_or_none()
+
     if not result:
         raise HTTPException(detail="cursor_not_found", status_code=404)
 
@@ -42,6 +48,7 @@ async def get_wallet_list(session: AsyncSession = Depends(get_session),
 
     result = await session.execute(query)
     items = result.scalars().all()
+
     if len(items) == limit + 1:
         return {"items": items[:-1],
                 "next_cursor": items[-1].id}
