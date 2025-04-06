@@ -5,21 +5,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.models import WalletInfo
-from app.schemas import WalletRequest
+from app.schemas import WalletRequest, AddressInfo
 from app.tron_service import TronService, get_tron_service
 
 router = APIRouter()
 
 
-@router.post("/address")
+@router.post("/address", response_model=AddressInfo)
 async def fetch_address_info(
     address_request: WalletRequest,
     session: AsyncSession = Depends(get_session),
     tron_service: TronService = Depends(get_tron_service),
-):
+) -> dict:
     address = address_request.address
-    address_info = tron_service.get_address_info(address)
+    info = tron_service.get_address_info(address)
 
+    address_info = AddressInfo(
+        address=address,
+        balance=info.balance,
+        bandwidth=info.bandwidth,
+        energy=info.energy,
+    )
     wallet = WalletInfo(
         wallet_address=address,
         bandwidth=address_info.bandwidth,
@@ -30,7 +36,7 @@ async def fetch_address_info(
 
     await session.commit()
 
-    return jsonable_encoder(address_info)
+    return address_info
 
 
 @router.get("/items")
