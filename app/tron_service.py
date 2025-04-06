@@ -19,9 +19,7 @@ class TronAddressInfo:
 
 
 class TronService:
-    client = Tron(HTTPProvider(
-        api_key=os.getenv("API_KEY")
-    ))
+    client = Tron(HTTPProvider(api_key=os.getenv("API_KEY")))
 
     def get_address_info(self, address):
         account_info = self.client.get_account(address)

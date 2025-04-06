@@ -16,7 +16,9 @@ load_dotenv(".env.test")
 
 @pytest.fixture()
 async def test_session():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -36,16 +38,18 @@ async def test_session():
 
 @pytest.fixture()
 async def client(test_session):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         yield client
 
 
 @pytest.mark.asyncio
 async def test_fetch_address_info(client):
-
-    response = await client.post("/address",
-                                 json={"address": "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"},
-                                 )
+    response = await client.post(
+        "/address",
+        json={"address": "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"},
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -63,16 +67,20 @@ async def test_record_wallet_info_with_mock(client: AsyncClient, test_session):
         address="TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx",
         balance=Decimal(100),
         energy=50,
-        bandwidth=20
+        bandwidth=20,
     )
     app.dependency_overrides[get_tron_service] = lambda: mock_tron_service
 
-    response = await client.post("/address", json={"address": "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"})
+    response = await client.post(
+        "/address", json={"address": "TR6NmBJLuCXpmK9G75FgbqJE87szz1RTSx"}
+    )
     assert response.status_code == 200
     data = response.json()
 
     async with test_session() as session:
-        result = await session.execute(select(WalletInfo).where(WalletInfo.wallet_address == data["address"]))
+        result = await session.execute(
+            select(WalletInfo).where(WalletInfo.wallet_address == data["address"])
+        )
         wallet = result.scalar_one_or_none()
 
     assert wallet is not None
