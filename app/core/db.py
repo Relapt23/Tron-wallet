@@ -5,7 +5,7 @@ from app.core.models import Base
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{DBConfig.USER}:{DBConfig.PASSWORD}@{DBConfig.HOST}:{DBConfig.PORT}/{DBConfig.DATABASE}",
-    echo=True
+    echo=True,
 )
 
 sess = async_sessionmaker(engine)

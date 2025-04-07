@@ -10,10 +10,12 @@ class Base(DeclarativeBase):
 
 
 class WalletInfo(Base):
-    __tablename__ = 'wallet_info'
+    __tablename__ = "wallet_info"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     wallet_address: Mapped[str] = mapped_column(nullable=False)
     bandwidth: Mapped[int]
     energy: Mapped[int]
     balance: Mapped[Decimal] = mapped_column(Numeric(12, 6))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
